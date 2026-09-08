@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Tugasin — Selesaikan Tugas, Cairkan Saldo' %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">Tugas<span>in</span></a>
+      <div class="nav-links">
+        <% if (typeof user !== 'undefined' && user) { %>
+          <% if (user.role === 'admin') { %>
+            <a href="/admin">Panel Admin</a>
+          <% } else { %>
+            <a href="/dashboard">Tugas</a>
+            <a href="/history">Riwayat</a>
+            <a href="/withdraw">Cairkan Saldo</a>
+            <span class="balance-pill">Rp<%= Number(user.balance).toLocaleString('id-ID') %></span>
+          <% } %>
+          <form action="/logout" method="POST" style="display:inline">
+            <button type="submit" class="btn btn-outline btn-sm">Keluar</button>
+          </form>
+        <% } else { %>
+          <a href="/login">Masuk</a>
+          <a href="/register" class="btn btn-sm">Daftar</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="container" style="padding-top: 32px; padding-bottom: 60px;">
