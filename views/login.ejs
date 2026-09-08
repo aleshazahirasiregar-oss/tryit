@@ -1,0 +1,20 @@
+<%- include('partials/header', { title: 'Masuk — Tugasin' }) %>
+
+<div style="max-width:420px; margin: 20px auto;">
+  <h2 style="margin-bottom:20px;">Masuk ke akun kamu</h2>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/login">
+    <div class="field">
+      <label>Email</label>
+      <input type="email" name="email" required>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" name="password" required>
+    </div>
+    <button type="submit" class="btn" style="width:100%;">Masuk</button>
+  </form>
+  <p style="margin-top:16px; font-size:14px; color:var(--ink-soft);">Belum punya akun? <a href="/register">Daftar di sini</a></p>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,30 @@
+<%- include('partials/header', { title: 'Tugas Tersedia — Tugasin', user }) %>
+
+<h2 style="margin-bottom:4px;">Tugas tersedia</h2>
+<p class="task-meta" style="margin-bottom:20px;">Pilih tugas, kerjakan, lalu kirim buktinya untuk dapat saldo.</p>
+
+<% if (tasks.length === 0) { %>
+  <div class="card empty">Belum ada tugas aktif saat ini. Cek lagi nanti ya.</div>
+<% } %>
+
+<% tasks.forEach(function(t) { %>
+  <div class="card task-card">
+    <div>
+      <h3 style="font-size:17px;"><%= t.title %></h3>
+      <p style="margin: 6px 0; color: var(--ink-soft); font-size:14px;"><%= t.description %></p>
+      <% if (t.my_status) { %>
+        <span class="status-pill status-<%= t.my_status %>">
+          <%= t.my_status === 'pending' ? 'Menunggu review' : t.my_status === 'approved' ? 'Disetujui' : 'Ditolak' %>
+        </span>
+      <% } %>
+    </div>
+    <div style="text-align:right;">
+      <div class="task-reward">+Rp<%= Number(t.reward_amount).toLocaleString('id-ID') %></div>
+      <% if (!t.my_status) { %>
+        <a href="/tasks/<%= t.id %>/submit" class="btn btn-sm" style="margin-top:10px; display:inline-block;">Kerjakan</a>
+      <% } %>
+    </div>
+  </div>
+<% }); %>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,27 @@
+<%- include('partials/header', { title: 'Riwayat Tugas — Tugasin' }) %>
+
+<h2 style="margin-bottom:20px;">Riwayat pengerjaan tugas</h2>
+
+<% if (submissions.length === 0) { %>
+  <div class="card empty">Belum ada riwayat. Yuk mulai kerjakan tugas pertama kamu.</div>
+<% } else { %>
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>Tugas</th><th>Reward</th><th>Status</th><th>Tanggal</th></tr>
+      </thead>
+      <tbody>
+        <% submissions.forEach(function(s) { %>
+          <tr>
+            <td><%= s.title %></td>
+            <td>Rp<%= Number(s.reward_amount).toLocaleString('id-ID') %></td>
+            <td><span class="status-pill status-<%= s.status %>"><%= s.status === 'pending' ? 'Menunggu' : s.status === 'approved' ? 'Disetujui' : 'Ditolak' %></span></td>
+            <td><%= new Date(s.created_at).toLocaleDateString('id-ID') %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

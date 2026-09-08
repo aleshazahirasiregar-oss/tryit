@@ -1,0 +1,25 @@
+<%- include('partials/header', { title: task.title + ' — Tugasin' }) %>
+
+<div style="max-width:520px;">
+  <a href="/dashboard" style="font-size:13px;">&larr; Kembali ke daftar tugas</a>
+  <h2 style="margin-top:12px;"><%= task.title %></h2>
+  <p style="color:var(--ink-soft);"><%= task.description %></p>
+  <p class="task-reward" style="margin: 10px 0 24px;">Reward: Rp<%= Number(task.reward_amount).toLocaleString('id-ID') %></p>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+  <form method="POST" action="/tasks/<%= task.id %>/submit">
+    <div class="field">
+      <label>
+        <% if (task.proof_type === 'link') { %>Link bukti pengerjaan
+        <% } else if (task.proof_type === 'screenshot_url') { %>Link screenshot bukti (Google Drive, Imgur, dll)
+        <% } else { %>Bukti pengerjaan
+        <% } %>
+      </label>
+      <textarea name="proof_content" rows="4" required placeholder="Tempel link atau jelaskan bukti pengerjaan di sini"></textarea>
+    </div>
+    <button type="submit" class="btn">Kirim Bukti</button>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

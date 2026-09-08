@@ -1,0 +1,29 @@
+<%- include('partials/header', { title: 'Daftar — Tugasin' }) %>
+
+<div style="max-width:420px; margin: 20px auto;">
+  <h2 style="margin-bottom:20px;">Buat akun baru</h2>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/register">
+    <div class="field">
+      <label>Nama Lengkap</label>
+      <input type="text" name="full_name" required>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" name="email" required>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" name="password" minlength="8" required>
+      <div class="helptext">Minimal 8 karakter.</div>
+    </div>
+    <div class="field">
+      <label>Konfirmasi Password</label>
+      <input type="password" name="confirm_password" minlength="8" required>
+    </div>
+    <button type="submit" class="btn" style="width:100%;">Daftar</button>
+  </form>
+  <p style="margin-top:16px; font-size:14px; color:var(--ink-soft);">Sudah punya akun? <a href="/login">Masuk di sini</a></p>
+</div>
+
+<%- include('partials/footer') %>

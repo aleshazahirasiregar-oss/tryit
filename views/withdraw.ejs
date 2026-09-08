@@ -1,0 +1,54 @@
+<%- include('partials/header', { title: 'Cairkan Saldo — Tugasin', user }) %>
+
+<div style="max-width:520px;">
+  <h2 style="margin-bottom:4px;">Cairkan saldo</h2>
+  <p class="task-meta" style="margin-bottom:20px;">Saldo kamu saat ini: <strong>Rp<%= Number(user.balance).toLocaleString('id-ID') %></strong></p>
+
+  <% if (typeof error !== 'undefined' && error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+  <div class="card">
+    <form method="POST" action="/withdraw">
+      <div class="field">
+        <label>Jumlah Penarikan (Rp)</label>
+        <input type="number" name="amount" min="<%= minWithdraw %>" max="<%= maxWithdraw %>" required>
+        <div class="helptext">Minimal Rp<%= minWithdraw.toLocaleString('id-ID') %>, maksimal Rp<%= maxWithdraw.toLocaleString('id-ID') %> per transaksi.</div>
+      </div>
+      <div class="field">
+        <label>Tujuan Pencairan</label>
+        <select name="destination" id="destination" onchange="toggleDestFields()">
+          <option value="bank">Transfer Bank</option>
+          <option value="ewallet">E-Wallet (OVO/DANA/GoPay)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nomor Rekening / E-Wallet</label>
+        <input type="text" name="destination_detail" placeholder="Contoh: 1234567890" required>
+      </div>
+      <button type="submit" class="btn">Ajukan Pencairan</button>
+    </form>
+  </div>
+
+  <h3 style="margin-top:32px; font-size:16px;">Riwayat pencairan</h3>
+  <% if (history.length === 0) { %>
+    <div class="card empty">Belum ada riwayat pencairan.</div>
+  <% } else { %>
+    <div class="card">
+      <table>
+        <thead><tr><th>Jumlah</th><th>Status</th><th>Tanggal</th></tr></thead>
+        <tbody>
+          <% history.forEach(function(w) { %>
+            <tr>
+              <td>Rp<%= Number(w.amount).toLocaleString('id-ID') %></td>
+              <td><span class="status-pill status-<%= w.status %>">
+                <%= {pending:'Menunggu', processing:'Diproses', success:'Berhasil', failed:'Gagal'}[w.status] %>
+              </span></td>
+              <td><%= new Date(w.created_at).toLocaleDateString('id-ID') %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

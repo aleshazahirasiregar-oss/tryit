@@ -1,0 +1,59 @@
+<%- include('partials/header', { title: 'Panel Admin — Tugasin' }) %>
+
+<h2 style="margin-bottom:20px;">Panel Admin</h2>
+
+<section>
+  <h3 style="font-size:16px; margin-bottom:12px;">Submission menunggu review (<%= pendingSubs.length %>)</h3>
+  <% if (pendingSubs.length === 0) { %>
+    <div class="card empty">Tidak ada submission menunggu review.</div>
+  <% } %>
+  <% pendingSubs.forEach(function(s) { %>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between;">
+        <div>
+          <strong><%= s.title %></strong> — <%= s.full_name %> (<%= s.email %>)
+          <p style="color:var(--ink-soft); font-size:14px; margin:8px 0;">Bukti: <%= s.proof_content %></p>
+        </div>
+        <div class="task-reward">Rp<%= Number(s.reward_amount).toLocaleString('id-ID') %></div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <form method="POST" action="/admin/submissions/<%= s.id %>/approve">
+          <button class="btn btn-sm" type="submit">Setujui</button>
+        </form>
+        <form method="POST" action="/admin/submissions/<%= s.id %>/reject">
+          <button class="btn btn-sm btn-danger" type="submit">Tolak</button>
+        </form>
+      </div>
+    </div>
+  <% }); %>
+</section>
+
+<section>
+  <h3 style="font-size:16px; margin-bottom:12px;">Pencairan menunggu diproses (<%= pendingWithdrawals.length %>)</h3>
+  <% if (pendingWithdrawals.length === 0) { %>
+    <div class="card empty">Tidak ada pencairan yang menunggu.</div>
+  <% } %>
+  <% pendingWithdrawals.forEach(function(w) { %>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between;">
+        <div>
+          <strong><%= w.full_name %></strong> (<%= w.email %>)
+          <p style="color:var(--ink-soft); font-size:14px; margin:8px 0;">
+            Tujuan: <%= w.destination %> — <%= w.destination_detail %>
+          </p>
+        </div>
+        <div class="task-reward">Rp<%= Number(w.amount).toLocaleString('id-ID') %></div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <form method="POST" action="/admin/withdrawals/<%= w.id %>/mark-success">
+          <button class="btn btn-sm" type="submit">Tandai Sudah Ditransfer</button>
+        </form>
+        <form method="POST" action="/admin/withdrawals/<%= w.id %>/refund">
+          <button class="btn btn-sm btn-danger" type="submit">Batalkan &amp; Kembalikan Saldo</button>
+        </form>
+      </div>
+    </div>
+  <% }); %>
+</section>
+
+<%- include('partials/footer') %>
