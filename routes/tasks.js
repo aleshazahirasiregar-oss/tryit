@@ -4,7 +4,10 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Dashboard: daftar tugas + status milik user
+function looksLikeUrl(str) {
+  return /^https?:\/\/.+\..+/i.test(str.trim());
+}
+
 router.get('/dashboard', requireAuth, async (req, res) => {
   const { rows: tasks } = await pool.query(`
     SELECT t.*,
@@ -19,7 +22,6 @@ router.get('/dashboard', requireAuth, async (req, res) => {
   res.render('dashboard', { tasks, user: req.user });
 });
 
-// Form submit bukti tugas
 router.get('/tasks/:id/submit', requireAuth, async (req, res) => {
   const { rows } = await pool.query('SELECT * FROM tasks WHERE id = $1 AND is_active = TRUE', [req.params.id]);
   if (!rows[0]) return res.status(404).render('error', { message: 'Tugas tidak ditemukan.' });
@@ -27,44 +29,63 @@ router.get('/tasks/:id/submit', requireAuth, async (req, res) => {
 });
 
 router.post('/tasks/:id/submit', requireAuth, async (req, res) => {
-  const { proof_content } = req.body;
   const taskId = req.params.id;
 
   const { rows: taskRows } = await pool.query('SELECT * FROM tasks WHERE id = $1 AND is_active = TRUE', [taskId]);
   const task = taskRows[0];
   if (!task) return res.status(404).render('error', { message: 'Tugas tidak ditemukan.' });
 
-  if (!proof_content || proof_content.trim().length < 3) {
+  const proof = (req.body.proof_content || '').trim();
+  if (proof.length < 3) {
     return res.render('submit-task', { task, error: 'Isi bukti pengerjaan tugas dulu ya.' });
   }
+  if ((task.proof_type === 'link' || task.proof_type === 'screenshot_url') && !looksLikeUrl(proof)) {
+    return res.render('submit-task', { task, error: 'Bukti harus berupa link yang valid (diawali http:// atau https://).' });
+  }
 
+  const client = await pool.connect();
   try {
-    // Cek kuota maksimum submission yang sudah disetujui
+    await client.query('BEGIN');
+
     if (task.max_submissions !== null) {
-      const { rows } = await pool.query(
+      const { rows } = await client.query(
         "SELECT COUNT(*) FROM submissions WHERE task_id = $1 AND status != 'rejected'",
         [taskId]
       );
       if (parseInt(rows[0].count, 10) >= task.max_submissions) {
+        await client.query('ROLLBACK');
         return res.render('submit-task', { task, error: 'Kuota tugas ini sudah penuh.' });
       }
     }
 
-    await pool.query(
-      `INSERT INTO submissions (task_id, user_id, proof_content) VALUES ($1, $2, $3)`,
-      [taskId, req.user.id, proof_content.trim()]
+    const { rows: subRows } = await client.query(
+      `INSERT INTO submissions (task_id, user_id, proof_content, status, reviewed_at)
+       VALUES ($1, $2, $3, 'approved', NOW()) RETURNING id`,
+      [taskId, req.user.id, proof]
     );
+    const submissionId = subRows[0].id;
+
+    await client.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [task.reward_amount, req.user.id]);
+    await client.query(
+      `INSERT INTO wallet_ledger (user_id, amount, type, reference_id, note)
+       VALUES ($1, $2, 'task_reward', $3, 'Reward tugas (auto-approve Bot Mekos)')`,
+      [req.user.id, task.reward_amount, submissionId]
+    );
+
+    await client.query('COMMIT');
     res.redirect('/dashboard?submitted=1');
   } catch (err) {
-    if (err.code === '23505') { // unique_violation: sudah pernah submit
+    await client.query('ROLLBACK');
+    if (err.code === '23505') {
       return res.render('submit-task', { task, error: 'Kamu sudah pernah mengirim bukti untuk tugas ini.' });
     }
     console.error(err);
     res.render('submit-task', { task, error: 'Terjadi kesalahan. Coba lagi.' });
+  } finally {
+    client.release();
   }
 });
 
-// Riwayat submission milik user
 router.get('/history', requireAuth, async (req, res) => {
   const { rows } = await pool.query(`
     SELECT s.*, t.title, t.reward_amount
